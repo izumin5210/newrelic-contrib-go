@@ -8,93 +8,96 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 )
 
-func wrapQueryer(queryer Queryer) Queryer {
-	return &queryerWrapper{original: queryer}
+func wrapQueryer(queryer Queryer, cfg *Config) Queryer {
+	return &queryerWrapper{original: queryer, config: cfg}
 }
 
 type queryerWrapper struct {
 	original Queryer
+	config   *Config
 }
 
 func (w *queryerWrapper) QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {
-	segment(ctx, parseQuery(query), args, func() {
+	segment(ctx, w.config, parseQuery(query), args, func() {
 		rows, err = w.original.QueryContext(ctx, query, args...)
 	})
 	return
 }
 
 func (w *queryerWrapper) QueryRowContext(ctx context.Context, query string, args ...interface{}) (row *sql.Row) {
-	segment(ctx, parseQuery(query), args, func() {
+	segment(ctx, w.config, parseQuery(query), args, func() {
 		row = w.original.QueryRowContext(ctx, query, args...)
 	})
 	return
 }
 
-func wrapExecer(execer Execer) Execer {
-	return &execerWrapper{original: execer}
+func wrapExecer(execer Execer, cfg *Config) Execer {
+	return &execerWrapper{original: execer, config: cfg}
 }
 
 type execerWrapper struct {
 	original Execer
+	config   *Config
 }
 
 func (w *execerWrapper) ExecContext(ctx context.Context, query string, args ...interface{}) (res sql.Result, err error) {
-	segment(ctx, parseQuery(query), args, func() {
+	segment(ctx, w.config, parseQuery(query), args, func() {
 		res, err = w.original.ExecContext(ctx, query, args...)
 	})
 	return
 }
 
-func wrapPreparedQueryer(queryer PreparedQueryer, query *query) PreparedQueryer {
-	return &preparedQueryerWrapper{original: queryer, query: query}
+func wrapPreparedQueryer(queryer PreparedQueryer, query *query, cfg *Config) PreparedQueryer {
+	return &preparedQueryerWrapper{original: queryer, query: query, config: cfg}
 }
 
 type preparedQueryerWrapper struct {
 	original PreparedQueryer
 	query    *query
+	config   *Config
 }
 
 func (w *preparedQueryerWrapper) QueryContext(ctx context.Context, args ...interface{}) (rows *sql.Rows, err error) {
-	segment(ctx, w.query, args, func() {
+	segment(ctx, w.config, w.query, args, func() {
 		rows, err = w.original.QueryContext(ctx, args...)
 	})
 	return
 }
 
 func (w *preparedQueryerWrapper) QueryRowContext(ctx context.Context, args ...interface{}) (row *sql.Row) {
-	segment(ctx, w.query, args, func() {
+	segment(ctx, w.config, w.query, args, func() {
 		row = w.original.QueryRowContext(ctx, args...)
 	})
 	return
 }
 
-func wrapPreparedExecer(execer PreparedExecer, query *query) PreparedExecer {
-	return &preparedExecerWrapper{original: execer, query: query}
+func wrapPreparedExecer(execer PreparedExecer, query *query, cfg *Config) PreparedExecer {
+	return &preparedExecerWrapper{original: execer, query: query, config: cfg}
 }
 
 type preparedExecerWrapper struct {
 	original PreparedExecer
 	query    *query
+	config   *Config
 }
 
 func (w *preparedExecerWrapper) ExecContext(ctx context.Context, args ...interface{}) (res sql.Result, err error) {
-	segment(ctx, w.query, args, func() {
+	segment(ctx, w.config, w.query, args, func() {
 		res, err = w.original.ExecContext(ctx, args...)
 	})
 	return
 }
 
-func segment(ctx context.Context, q *query, args []interface{}, do func()) {
+func segment(ctx context.Context, cfg *Config, q *query, args []interface{}, do func()) {
 	seg := &newrelic.DatastoreSegment{
-		StartTime: newrelic.StartSegmentNow(nrutil.Transaction(ctx)),
-		// Product:            "",
+		StartTime:          newrelic.StartSegmentNow(nrutil.Transaction(ctx)),
+		Product:            cfg.Datastore,
 		Collection:         q.TableName,
 		Operation:          q.Operation,
 		ParameterizedQuery: q.Raw,
-		// QueryParameters:    map[string]interface{}{},
-		// Host:               "",
-		// PortPathOrID:       "",
-		// DatabaseName:       "",
+		Host:               cfg.Host,
+		PortPathOrID:       cfg.PortPathOrID,
+		DatabaseName:       cfg.DBName,
 	}
 	defer seg.End()
 

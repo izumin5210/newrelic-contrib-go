@@ -21,14 +21,18 @@ type dbWrapper struct {
 	original *sql.DB
 	Queryer
 	Execer
+
+	config *Config
 }
 
 // Wrap wraps a *sql.DB object to measure performances and sent them to New Relic.
-func Wrap(db *sql.DB) DB {
+func Wrap(db *sql.DB, opts ...Option) DB {
+	cfg := createConfig(opts)
 	return &dbWrapper{
 		original: db,
-		Queryer:  wrapQueryer(db),
-		Execer:   Execer(db),
+		Queryer:  wrapQueryer(db, cfg),
+		Execer:   wrapExecer(db, cfg),
+		config:   cfg,
 	}
 }
 
@@ -37,7 +41,7 @@ func (w *dbWrapper) PrepareContext(ctx context.Context, query string) (Stmt, err
 	if err != nil {
 		return nil, err
 	}
-	return wrapStmt(stmt, parseQuery(query)), nil
+	return wrapStmt(stmt, w.config, parseQuery(query)), nil
 }
 
 func (w *dbWrapper) Close() error {

@@ -8,19 +8,23 @@ type Stmt interface {
 	PreparedExecer
 
 	Stmt() *sql.Stmt
+	parsedQuery() *query
 }
 
 type stmtWrapper struct {
 	original *sql.Stmt
 	PreparedQueryer
 	PreparedExecer
+
+	query *query
 }
 
-func wrapStmt(stmt *sql.Stmt, query *query) Stmt {
+func wrapStmt(stmt *sql.Stmt, cfg *Config, query *query) Stmt {
 	return &stmtWrapper{
 		original:        stmt,
-		PreparedQueryer: wrapPreparedQueryer(stmt, query),
-		PreparedExecer:  wrapPreparedExecer(stmt, query),
+		PreparedQueryer: wrapPreparedQueryer(stmt, query, cfg),
+		PreparedExecer:  wrapPreparedExecer(stmt, query, cfg),
+		query:           query,
 	}
 }
 
@@ -30,4 +34,8 @@ func (w *stmtWrapper) Close() error {
 
 func (w *stmtWrapper) Stmt() *sql.Stmt {
 	return w.original
+}
+
+func (w *stmtWrapper) parsedQuery() *query {
+	return w.query
 }

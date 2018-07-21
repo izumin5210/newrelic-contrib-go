@@ -21,18 +21,21 @@ type txWrapper struct {
 	original *sql.Tx
 	Queryer
 	Execer
+
+	config *Config
 }
 
-func wrapTx(tx *sql.Tx) Tx {
+func wrapTx(tx *sql.Tx, cfg *Config) Tx {
 	return &txWrapper{
 		original: tx,
-		Queryer:  wrapQueryer(tx),
-		Execer:   wrapExecer(tx),
+		Queryer:  wrapQueryer(tx, cfg),
+		Execer:   wrapExecer(tx, cfg),
+		config:   cfg,
 	}
 }
 
 func (w *txWrapper) StmtContext(ctx context.Context, stmt Stmt) Stmt {
-	return wrapStmt(w.original.StmtContext(ctx, stmt.Stmt()))
+	return wrapStmt(w.original.StmtContext(ctx, stmt.Stmt()), w.config, stmt.parsedQuery())
 }
 
 func (w *txWrapper) Commit() error {
