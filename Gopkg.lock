@@ -17,6 +17,18 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/xwb1989/sqlparser"
+  packages = [
+    ".",
+    "dependency/bytes2",
+    "dependency/hack",
+    "dependency/querypb",
+    "dependency/sqltypes"
+  ]
+  revision = "120387863bf27d04bc07db8015110a6e96d0146c"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
   revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
@@ -24,6 +36,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "827491f3c3d6f7d9a920525a44c43d86d2ca3ba954c3bb7358534e0824968e57"
+  inputs-digest = "9dc183e22eae61c1c251c65d72a0f668f3142b4da0b59c23008242f7b459de98"
   solver-name = "gps-cdcl"
   solver-version = 1
