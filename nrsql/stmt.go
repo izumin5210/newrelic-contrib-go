@@ -2,10 +2,10 @@ package nrsql
 
 import "database/sql"
 
+// Stmt wraps a *sql.Stmt object.
 type Stmt interface {
 	PreparedQueryer
 	PreparedExecer
-	Closer
 
 	Stmt() *sql.Stmt
 }
@@ -16,11 +16,11 @@ type stmtWrapper struct {
 	PreparedExecer
 }
 
-func wrapStmt(stmt *sql.Stmt) Stmt {
+func wrapStmt(stmt *sql.Stmt, query *query) Stmt {
 	return &stmtWrapper{
 		original:        stmt,
-		PreparedQueryer: wrapPreparedQueryer(stmt),
-		PreparedExecer:  wrapPreparedExecer(stmt),
+		PreparedQueryer: wrapPreparedQueryer(stmt, query),
+		PreparedExecer:  wrapPreparedExecer(stmt, query),
 	}
 }
 

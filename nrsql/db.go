@@ -5,11 +5,11 @@ import (
 	"database/sql"
 )
 
+// DB wraps a *sql.DB object.
 type DB interface {
 	Queryer
 	Execer
 	Preparer
-	Closer
 
 	Begin() (Tx, error)
 	BeginTx(context.Context, *sql.TxOptions) (Tx, error)
@@ -23,6 +23,7 @@ type dbWrapper struct {
 	Execer
 }
 
+// Wrap wraps a *sql.DB object to measure performances and sent them to New Relic.
 func Wrap(db *sql.DB) DB {
 	return &dbWrapper{
 		original: db,
@@ -36,7 +37,7 @@ func (w *dbWrapper) PrepareContext(ctx context.Context, query string) (Stmt, err
 	if err != nil {
 		return nil, err
 	}
-	return wrapStmt(stmt), nil
+	return wrapStmt(stmt, parseQuery(query)), nil
 }
 
 func (w *dbWrapper) Close() error {

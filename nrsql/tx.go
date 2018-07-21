@@ -5,6 +5,7 @@ import (
 	"database/sql"
 )
 
+// Tx wraps a *sql.Tx object.
 type Tx interface {
 	Queryer
 	Execer
