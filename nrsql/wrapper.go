@@ -4,16 +4,17 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/izumin5210/isql"
 	"github.com/izumin5210/newrelic-contrib-go/nrutil"
 	newrelic "github.com/newrelic/go-agent"
 )
 
-func wrapQueryer(contextQueryer ContextQueryer, cfg *Config) Queryer {
+func wrapQueryer(contextQueryer isql.ContextQueryer, cfg *Config) isql.Queryer {
 	return &queryerWrapper{original: contextQueryer, config: cfg}
 }
 
 type queryerWrapper struct {
-	original ContextQueryer
+	original isql.ContextQueryer
 	config   *Config
 }
 
@@ -39,12 +40,12 @@ func (w *queryerWrapper) QueryRowContext(ctx context.Context, query string, args
 	return
 }
 
-func wrapExecer(execer ContextExecer, cfg *Config) Execer {
+func wrapExecer(execer isql.ContextExecer, cfg *Config) isql.Execer {
 	return &execerWrapper{original: execer, config: cfg}
 }
 
 type execerWrapper struct {
-	original ContextExecer
+	original isql.ContextExecer
 	config   *Config
 }
 
@@ -59,12 +60,12 @@ func (w *execerWrapper) ExecContext(ctx context.Context, query string, args ...i
 	return
 }
 
-func wrapPreparedQueryer(queryer ContextPreparedQueryer, query *query, cfg *Config) PreparedQueryer {
+func wrapPreparedQueryer(queryer isql.ContextPreparedQueryer, query *query, cfg *Config) isql.PreparedQueryer {
 	return &preparedQueryerWrapper{original: queryer, query: query, config: cfg}
 }
 
 type preparedQueryerWrapper struct {
-	original ContextPreparedQueryer
+	original isql.ContextPreparedQueryer
 	query    *query
 	config   *Config
 }
@@ -91,12 +92,12 @@ func (w *preparedQueryerWrapper) QueryRowContext(ctx context.Context, args ...in
 	return
 }
 
-func wrapPreparedExecer(execer ContextPreparedExecer, query *query, cfg *Config) PreparedExecer {
+func wrapPreparedExecer(execer isql.ContextPreparedExecer, query *query, cfg *Config) isql.PreparedExecer {
 	return &preparedExecerWrapper{original: execer, query: query, config: cfg}
 }
 
 type preparedExecerWrapper struct {
-	original ContextPreparedExecer
+	original isql.ContextPreparedExecer
 	query    *query
 	config   *Config
 }

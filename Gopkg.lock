@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/izumin5210/isql"
+  packages = ["."]
+  revision = "6ef7371f8ade6e51025fc8bafe36836c592d06d5"
+
+[[projects]]
   name = "github.com/newrelic/go-agent"
   packages = [
     ".",
@@ -36,6 +42,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9dc183e22eae61c1c251c65d72a0f668f3142b4da0b59c23008242f7b459de98"
+  inputs-digest = "36d7e965399fd906897dc6360d0477e57ec81fa50e890289f152a25664a217da"
   solver-name = "gps-cdcl"
   solver-version = 1

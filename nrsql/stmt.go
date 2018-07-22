@@ -1,20 +1,21 @@
 package nrsql
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/izumin5210/isql"
+)
 
 // Stmt wraps a *sql.Stmt object.
 type Stmt interface {
-	PreparedQueryer
-	PreparedExecer
-
-	Stmt() *sql.Stmt
+	isql.Stmt
 	parsedQuery() *query
 }
 
 type stmtWrapper struct {
 	original *sql.Stmt
-	PreparedQueryer
-	PreparedExecer
+	isql.PreparedQueryer
+	isql.PreparedExecer
 
 	query *query
 }

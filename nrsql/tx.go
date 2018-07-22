@@ -3,28 +3,19 @@ package nrsql
 import (
 	"context"
 	"database/sql"
+
+	"github.com/izumin5210/isql"
 )
-
-// Tx wraps a *sql.Tx object.
-type Tx interface {
-	Queryer
-	Execer
-	Transactor
-
-	StmtContext(context.Context, Stmt) Stmt
-
-	Tx() *sql.Tx
-}
 
 type txWrapper struct {
 	original *sql.Tx
-	Queryer
-	Execer
+	isql.Queryer
+	isql.Execer
 
 	config *Config
 }
 
-func wrapTx(tx *sql.Tx, cfg *Config) Tx {
+func wrapTx(tx *sql.Tx, cfg *Config) isql.Tx {
 	return &txWrapper{
 		original: tx,
 		Queryer:  wrapQueryer(tx, cfg),
@@ -33,8 +24,12 @@ func wrapTx(tx *sql.Tx, cfg *Config) Tx {
 	}
 }
 
-func (w *txWrapper) StmtContext(ctx context.Context, stmt Stmt) Stmt {
-	return wrapStmt(w.original.StmtContext(ctx, stmt.Stmt()), w.config, stmt.parsedQuery())
+func (w *txWrapper) StmtContext(ctx context.Context, istmt isql.Stmt) isql.Stmt {
+	var q *query
+	if stmt, ok := istmt.(Stmt); ok {
+		q = stmt.parsedQuery()
+	}
+	return wrapStmt(w.original.StmtContext(ctx, istmt.Stmt()), w.config, q)
 }
 
 func (w *txWrapper) Commit() error {

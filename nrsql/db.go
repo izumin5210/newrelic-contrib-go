@@ -3,30 +3,20 @@ package nrsql
 import (
 	"context"
 	"database/sql"
+
+	"github.com/izumin5210/isql"
 )
-
-// DB wraps a *sql.DB object.
-type DB interface {
-	Queryer
-	Execer
-	Preparer
-	Pinger
-	Beginner
-	Closer
-
-	DB() *sql.DB
-}
 
 type dbWrapper struct {
 	original *sql.DB
-	Queryer
-	Execer
+	isql.Queryer
+	isql.Execer
 
 	config *Config
 }
 
 // Wrap wraps a *sql.DB object to measure performances and sent them to New Relic.
-func Wrap(db *sql.DB, opts ...Option) DB {
+func Wrap(db *sql.DB, opts ...Option) isql.DB {
 	cfg := createConfig(opts)
 	return &dbWrapper{
 		original: db,
@@ -36,11 +26,11 @@ func Wrap(db *sql.DB, opts ...Option) DB {
 	}
 }
 
-func (w *dbWrapper) Prepare(query string) (Stmt, error) {
+func (w *dbWrapper) Prepare(query string) (isql.Stmt, error) {
 	return w.PrepareContext(context.Background(), query)
 }
 
-func (w *dbWrapper) PrepareContext(ctx context.Context, query string) (Stmt, error) {
+func (w *dbWrapper) PrepareContext(ctx context.Context, query string) (isql.Stmt, error) {
 	stmt, err := w.original.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -60,7 +50,7 @@ func (w *dbWrapper) Close() error {
 	return w.original.Close()
 }
 
-func (w *dbWrapper) Begin() (Tx, error) {
+func (w *dbWrapper) Begin() (isql.Tx, error) {
 	tx, err := w.original.Begin()
 	if err != nil {
 		return nil, err
@@ -68,7 +58,7 @@ func (w *dbWrapper) Begin() (Tx, error) {
 	return wrapTx(tx, w.config), nil
 }
 
-func (w *dbWrapper) BeginTx(ctx context.Context, opts *sql.TxOptions) (Tx, error) {
+func (w *dbWrapper) BeginTx(ctx context.Context, opts *sql.TxOptions) (isql.Tx, error) {
 	tx, err := w.original.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
