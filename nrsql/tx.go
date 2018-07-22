@@ -9,10 +9,9 @@ import (
 type Tx interface {
 	Queryer
 	Execer
+	Transactor
 
 	StmtContext(context.Context, Stmt) Stmt
-	Commit() error
-	Rollback() error
 
 	Tx() *sql.Tx
 }

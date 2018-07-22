@@ -10,9 +10,9 @@ type DB interface {
 	Queryer
 	Execer
 	Preparer
-
-	Begin() (Tx, error)
-	BeginTx(context.Context, *sql.TxOptions) (Tx, error)
+	Pinger
+	Beginner
+	Closer
 
 	DB() *sql.DB
 }
@@ -36,12 +36,24 @@ func Wrap(db *sql.DB, opts ...Option) DB {
 	}
 }
 
+func (w *dbWrapper) Prepare(query string) (Stmt, error) {
+	return w.PrepareContext(context.Background(), query)
+}
+
 func (w *dbWrapper) PrepareContext(ctx context.Context, query string) (Stmt, error) {
 	stmt, err := w.original.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	return wrapStmt(stmt, w.config, parseQuery(query)), nil
+}
+
+func (w *dbWrapper) Ping() error {
+	return w.original.Ping()
+}
+
+func (w *dbWrapper) PingContext(ctx context.Context) error {
+	return w.original.PingContext(ctx)
 }
 
 func (w *dbWrapper) Close() error {
@@ -53,7 +65,7 @@ func (w *dbWrapper) Begin() (Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	return wrapTx(tx), nil
+	return wrapTx(tx, w.config), nil
 }
 
 func (w *dbWrapper) BeginTx(ctx context.Context, opts *sql.TxOptions) (Tx, error) {
@@ -61,7 +73,7 @@ func (w *dbWrapper) BeginTx(ctx context.Context, opts *sql.TxOptions) (Tx, error
 	if err != nil {
 		return nil, err
 	}
-	return wrapTx(tx), nil
+	return wrapTx(tx, w.config), nil
 }
 
 func (w *dbWrapper) DB() *sql.DB {

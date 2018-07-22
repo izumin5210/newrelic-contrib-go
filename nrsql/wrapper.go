@@ -8,13 +8,21 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 )
 
-func wrapQueryer(queryer Queryer, cfg *Config) Queryer {
-	return &queryerWrapper{original: queryer, config: cfg}
+func wrapQueryer(contextQueryer ContextQueryer, cfg *Config) Queryer {
+	return &queryerWrapper{original: contextQueryer, config: cfg}
 }
 
 type queryerWrapper struct {
-	original Queryer
+	original ContextQueryer
 	config   *Config
+}
+
+func (w *queryerWrapper) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return w.QueryContext(context.Background(), query, args...)
+}
+
+func (w *queryerWrapper) QueryRow(query string, args ...interface{}) *sql.Row {
+	return w.QueryRowContext(context.Background(), query, args...)
 }
 
 func (w *queryerWrapper) QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {
@@ -31,13 +39,17 @@ func (w *queryerWrapper) QueryRowContext(ctx context.Context, query string, args
 	return
 }
 
-func wrapExecer(execer Execer, cfg *Config) Execer {
+func wrapExecer(execer ContextExecer, cfg *Config) Execer {
 	return &execerWrapper{original: execer, config: cfg}
 }
 
 type execerWrapper struct {
-	original Execer
+	original ContextExecer
 	config   *Config
+}
+
+func (w *execerWrapper) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return w.ExecContext(context.Background(), query, args...)
 }
 
 func (w *execerWrapper) ExecContext(ctx context.Context, query string, args ...interface{}) (res sql.Result, err error) {
@@ -47,14 +59,22 @@ func (w *execerWrapper) ExecContext(ctx context.Context, query string, args ...i
 	return
 }
 
-func wrapPreparedQueryer(queryer PreparedQueryer, query *query, cfg *Config) PreparedQueryer {
+func wrapPreparedQueryer(queryer ContextPreparedQueryer, query *query, cfg *Config) PreparedQueryer {
 	return &preparedQueryerWrapper{original: queryer, query: query, config: cfg}
 }
 
 type preparedQueryerWrapper struct {
-	original PreparedQueryer
+	original ContextPreparedQueryer
 	query    *query
 	config   *Config
+}
+
+func (w *preparedQueryerWrapper) Query(args ...interface{}) (*sql.Rows, error) {
+	return w.QueryContext(context.Background(), args...)
+}
+
+func (w *preparedQueryerWrapper) QueryRow(args ...interface{}) *sql.Row {
+	return w.QueryRowContext(context.Background(), args...)
 }
 
 func (w *preparedQueryerWrapper) QueryContext(ctx context.Context, args ...interface{}) (rows *sql.Rows, err error) {
@@ -71,14 +91,18 @@ func (w *preparedQueryerWrapper) QueryRowContext(ctx context.Context, args ...in
 	return
 }
 
-func wrapPreparedExecer(execer PreparedExecer, query *query, cfg *Config) PreparedExecer {
+func wrapPreparedExecer(execer ContextPreparedExecer, query *query, cfg *Config) PreparedExecer {
 	return &preparedExecerWrapper{original: execer, query: query, config: cfg}
 }
 
 type preparedExecerWrapper struct {
-	original PreparedExecer
+	original ContextPreparedExecer
 	query    *query
 	config   *Config
+}
+
+func (w *preparedExecerWrapper) Exec(args ...interface{}) (sql.Result, error) {
+	return w.ExecContext(context.Background(), args...)
 }
 
 func (w *preparedExecerWrapper) ExecContext(ctx context.Context, args ...interface{}) (res sql.Result, err error) {
