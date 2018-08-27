@@ -1,8 +1,9 @@
 package nrutil
 
 import (
+	"context"
+
 	"github.com/newrelic/go-agent"
-	"golang.org/x/net/context"
 )
 
 type key struct{}
