@@ -1,0 +1,4 @@
+github.com/izumin5210/isql v0.0.0-20180722142634-6ef7371f8ade h1:DYup65eSXFi67hophS0Rk7aDisP6zMd8Vxt3L330shc=
+github.com/izumin5210/isql v0.0.0-20180722142634-6ef7371f8ade/go.mod h1:R6MGkhvXuHPgF408nzpimaviQmPyOzLl4GX8//IYpCc=
+github.com/newrelic/go-agent v1.11.0 h1:jnd8+H6dB+93UTJHFT1wJoij5spKNN/xZ0nkw0kvt7o=
+github.com/newrelic/go-agent v1.11.0/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
